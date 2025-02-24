@@ -1,0 +1,1177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Klax - Advanced Mode App</title>
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,500&display=swap" rel="stylesheet">
+  <style>
+    /* Dark Mode Variables */
+    :root {
+      --primary-color: #ff5252;
+      --secondary-color: #ff0000;
+      --accent-color: #c62828;
+      --dark-bg: #121212;
+      --dark-bg-alt: #1e1e1e;
+      --dark-text: #e0e0e0;
+      --default-pfp: "pfp.png";
+      --mod-pfp: "klax.png";
+      --transition-speed: 0.3s;
+    }
+    
+    /* Base Styles */
+    * { box-sizing: border-box; }
+    body, html {
+      margin: 0;
+      padding: 0;
+      font-family: 'Roboto', sans-serif;
+      background: var(--dark-bg);
+      color: var(--dark-text);
+      height: 100%;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background var(--transition-speed), color var(--transition-speed);
+    }
+    
+    /* Toggle Switch Styles (removed toggle functionality) */
+    /* (The toggle switch has been removed from settings) */
+    
+    /* Toast Notification Container */
+    #notificationContainer {
+      position: fixed;
+      top: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      pointer-events: none;
+    }
+    .notification {
+      background: var(--primary-color);
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 4px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+      opacity: 0.95;
+      font-size: 14px;
+      pointer-events: all;
+      animation: slideDown 0.3s ease-out;
+    }
+    @keyframes slideDown {
+      from { transform: translateY(-20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 0.95; }
+    }
+    .notification.error { background: var(--accent-color); }
+    .notification.info { background: var(--secondary-color); }
+    
+    /* Loading Screen */
+    #loadingScreen {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: var(--dark-bg-alt);
+      border-radius: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 100;
+      opacity: 1;
+      transition: opacity 1s ease-out;
+    }
+    #loadingScreen.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    #loadingScreen img {
+      width: 150px;
+      height: auto;
+      animation: bop 2s infinite;
+    }
+    @keyframes bop {
+      0% { transform: translateY(0); }
+      50% { transform: translateY(-20px); }
+      100% { transform: translateY(0); }
+    }
+    
+    /* Fade-in Animation */
+    .fade-in {
+      animation: fadeIn var(--transition-speed) ease-in;
+    }
+    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+    
+    /* Screen Styles */
+    .screen { display: none; width: 100%; height: 100%; }
+    
+    /* Container (Phone) */
+    .container {
+      width: 360px;
+      height: 680px;
+      background: var(--dark-bg-alt);
+      border-radius: 40px;
+      position: relative;
+      overflow: hidden;
+      box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+      transition: box-shadow var(--transition-speed);
+    }
+    .container::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 120px;
+      height: 20px;
+      background: var(--accent-color);
+      border-bottom-left-radius: 10px;
+      border-bottom-right-radius: 10px;
+      z-index: 2;
+    }
+    
+    /* Header */
+    .app-header {
+      background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+      padding: 40px 20px 20px;
+      text-align: center;
+      color: #fff;
+      font-size: 24px;
+      font-weight: bold;
+      position: relative;
+      z-index: 1;
+      transition: background var(--transition-speed);
+    }
+    .settings-gear {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      font-size: 28px;
+      cursor: pointer;
+    }
+    
+    /* Content Area */
+    .app-content {
+      padding: 20px;
+      height: calc(680px - 140px);
+      overflow-y: auto;
+      background: var(--dark-bg);
+      position: relative;
+      transition: background var(--transition-speed);
+    }
+    
+    /* Forms */
+    .auth-form {
+      padding: 20px;
+    }
+    .auth-form h2 {
+      text-align: center;
+      margin-bottom: 20px;
+      font-size: 26px;
+      font-weight: bold;
+      color: var(--primary-color);
+    }
+    .auth-form input,
+    .auth-form button,
+    .auth-form select,
+    .auth-form textarea {
+      width: 100%;
+      padding: 10px;
+      margin: 10px 0;
+      border: 1px solid #333;
+      border-radius: 5px;
+      font-size: 16px;
+      background: var(--dark-bg);
+      color: var(--dark-text);
+    }
+    .auth-form button {
+      background: var(--secondary-color);
+      color: #fff;
+      border: none;
+      cursor: pointer;
+      transition: background var(--transition-speed), box-shadow var(--transition-speed);
+    }
+    .auth-form button:hover {
+      background: var(--primary-color);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    }
+    .switch {
+      text-align: center;
+      margin-top: 10px;
+      font-size: 14px;
+      cursor: pointer;
+      color: var(--secondary-color);
+    }
+    
+    /* Incident Feed */
+    #incidentFeed { margin-bottom: 10px; }
+    .incident {
+      background: var(--dark-bg);
+      border: 1px solid #333;
+      border-radius: 10px;
+      padding: 10px;
+      margin-bottom: 12px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+      transition: background var(--transition-speed);
+    }
+    .incident p {
+      margin: 4px 0;
+      font-size: 14px;
+    }
+    .incident img {
+      width: 100%;
+      border-radius: 10px;
+      border: 2px dotted var(--secondary-color);
+      object-fit: cover;
+    }
+    .fake-photo {
+      width: 100%;
+      height: 200px;
+      background: #333;
+      border: 2px dashed var(--secondary-color);
+      border-radius: 10px;
+      margin-bottom: 8px;
+    }
+    #incidentSearch {
+      width: 100%;
+      padding: 8px;
+      margin-bottom: 10px;
+      border: 1px solid #444;
+      border-radius: 5px;
+      background: var(--dark-bg);
+      color: var(--dark-text);
+    }
+    
+    /* Report Info Display */
+    .incident-info {
+      font-size: 14px;
+      margin-top: 5px;
+      font-weight: bold;
+    }
+    .incident-info span {
+      display: block;
+    }
+    
+    /* Highlight for View Report */
+    .highlight {
+      animation: flashHighlight 0.5s ease-out;
+    }
+    @keyframes flashHighlight {
+      0% { box-shadow: 0 0 0px var(--accent-color); }
+      50% { box-shadow: 0 0 10px 5px var(--accent-color); }
+      100% { box-shadow: 0 0 0px var(--accent-color); }
+    }
+    
+    /* Chat */
+    .chat-container { display: flex; flex-direction: column; height: 100%; }
+    .chat-box {
+      flex: 1;
+      background: var(--dark-bg);
+      border-radius: 10px;
+      padding: 10px;
+      overflow-y: auto;
+      transition: background var(--transition-speed);
+    }
+    .chat-message {
+      display: flex;
+      align-items: flex-start;
+      background: var(--dark-bg);
+      padding: 10px;
+      margin-bottom: 10px;
+      border-radius: 10px;
+      border: 1px solid #333;
+      font-size: 14px;
+      position: relative;
+      transition: background var(--transition-speed), border-radius 0.2s;
+    }
+    .chat-pfp {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      margin-right: 10px;
+      object-fit: cover;
+      border: 1px solid #444;
+    }
+    .chat-text { flex: 1; }
+    .chat-text p { margin: 0 0 5px; }
+    .chat-text small { display: block; font-size: 12px; color: #aaa; }
+    .chat-actions { display: flex; gap: 5px; }
+    .chat-message.report-message .chat-actions {
+      display: none;
+    }
+    .pin-button {
+      background: linear-gradient(135deg, #ff4081, #f50057);
+      border: none;
+      border-radius: 50%;
+      color: #fff;
+      padding: 6px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .like-button {
+      background: linear-gradient(135deg, #ff5252, #ff1744);
+      border: none;
+      border-radius: 5px;
+      color: #fff;
+      padding: 6px 8px;
+      font-size: 14px;
+      cursor: pointer;
+    }
+    .like-button.liked { opacity: 0.8; }
+    .pinned { border: 2px solid var(--accent-color); }
+    .report-message {
+      text-align: center;
+      width: 100%;
+      margin: 10px 0;
+    }
+    .big-view-report-btn {
+      display: block;
+      width: 100%;
+      padding: 12px;
+      background: var(--primary-color);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+      cursor: pointer;
+      margin-top: 5px;
+    }
+    
+    .chat-input { display: flex; margin-top: 10px; }
+    .chat-input input {
+      flex: 1;
+      padding: 10px;
+      border: 1px solid #444;
+      border-radius: 5px;
+      font-size: 14px;
+      background: var(--dark-bg);
+      color: var(--dark-text);
+    }
+    .chat-input button {
+      padding: 10px 14px;
+      background: var(--secondary-color);
+      border: none;
+      color: #fff;
+      border-radius: 5px;
+      margin-left: 5px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background var(--transition-speed), box-shadow var(--transition-speed);
+    }
+    .chat-input button:hover {
+      background: var(--primary-color);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    }
+    
+    /* Settings */
+    .settings-container {
+      text-align: center;
+      font-size: 16px;
+      padding: 20px;
+      background: var(--dark-bg);
+      border-radius: 10px;
+      margin: 10px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    }
+    .settings-container button {
+      background: linear-gradient(135deg, var(--secondary-color), var(--primary-color));
+      color: #fff;
+      border: none;
+      border-radius: 5px;
+      padding: 10px;
+      margin: 10px 5px;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background var(--transition-speed), box-shadow var(--transition-speed);
+    }
+    .settings-container button:hover {
+      background: var(--secondary-color);
+      box-shadow: 0 2px 5px rgba(0,0,0,0.5);
+    }
+    .profile {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 20px 0;
+    }
+    .profile-img {
+      width: 90px;
+      height: 90px;
+      border-radius: 50%;
+      border: 2px solid var(--secondary-color);
+      background: #333;
+      background-image: url('https://via.placeholder.com/90');
+      background-size: cover;
+      background-position: center;
+      position: relative;
+    }
+    .edit-pfp {
+      position: absolute;
+      bottom: 5px;
+      right: 5px;
+      background: rgba(0,0,0,0.5);
+      color: #fff;
+      border-radius: 50%;
+      padding: 5px;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    .profile-id {
+      margin-top: 12px;
+      font-size: 18px;
+      font-weight: bold;
+      color: var(--dark-text);
+    }
+    
+    /* Bottom Navigation */
+    .app-footer {
+      height: 60px;
+      background: var(--secondary-color);
+      display: flex;
+      border-top: 1px solid #444;
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+      z-index: 3;
+    }
+    .nav-button {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      color: var(--secondary-color);
+      cursor: pointer;
+      font-size: 14px;
+      transition: color var(--transition-speed);
+      position: relative;
+    }
+    .nav-button.active { color: var(--primary-color); }
+    .notification-dot {
+      position: absolute;
+      top: 5px;
+      right: 20px;
+      width: 10px;
+      height: 10px;
+      background: var(--primary-color);
+      border-radius: 50%;
+    }
+    #homeNotificationDot { display: none; }
+    
+    /* Floating Camera Button */
+    #cameraButton {
+      position: absolute;
+      bottom: 80px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--secondary-color);
+      color: #fff;
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 32px;
+      cursor: pointer;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+      z-index: 5;
+      transition: transform 0.2s, background var(--transition-speed);
+    }
+    #cameraButton:hover { transform: translateX(-50%) scale(1.1); }
+    
+    /* Webcam Modal */
+    #webcamModal {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      z-index: 300;
+    }
+    #webcamModal .modal-content {
+      width: 100%;
+      height: 100%;
+      padding: 0;
+      display: flex;
+      flex-direction: column;
+      background: var(--dark-bg);
+      position: relative;
+    }
+    #webcamModal .close-modal {
+      position: absolute;
+      top: 10px;
+      right: 10px;
+      cursor: pointer;
+      font-size: 20px;
+      color: var(--dark-text);
+      z-index: 10;
+    }
+    #webcamModal video {
+      flex: 1;
+      width: 100%;
+      object-fit: cover;
+    }
+    /* Capture Button */
+    #captureBtn {
+      position: absolute;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: var(--secondary-color);
+      color: #fff;
+      font-size: 32px;
+      border: none;
+      cursor: pointer;
+      z-index: 10;
+    }
+    #webcamModal canvas {
+      display: none;
+    }
+  </style>
+</head>
+<body>
+  <!-- Notification Container -->
+  <div id="notificationContainer"></div>
+  
+  <!-- MAIN APP SCREEN -->
+  <div id="mainScreen" class="screen">
+    <div class="container fade-in">
+      <!-- Webcam Modal -->
+      <div id="webcamModal">
+        <div class="modal-content">
+          <span class="close-modal" onclick="closeWebcamModal()">×</span>
+          <video id="webcamVideo" autoplay playsinline></video>
+          <canvas id="capturedPhoto"></canvas>
+          <button id="captureBtn" onclick="handleWebcamCapture()">📷</button>
+        </div>
+      </div>
+      
+      <div class="app-header">
+        Klax
+        <div class="settings-gear" onclick="showScreen('settingsScreen', this)">&#9881;</div>
+      </div>
+      <div class="app-content">
+        <!-- Home/Feed Screen -->
+        <div id="homeScreen" class="subscreen">
+          <input type="text" id="incidentSearch" placeholder="Search reports..." onkeyup="filterIncidents()" />
+          <button onclick="loadFeeds()" style="margin-bottom:10px; padding:5px 10px;">Refresh</button>
+          <div id="incidentFeed">
+            <p style="text-align:center; color:#aaa;">No reports yet.</p>
+          </div>
+        </div>
+        
+        <!-- Chat Screen -->
+        <div id="chatScreen" class="subscreen" style="display:none;">
+          <div class="chat-container">
+            <div class="chat-box" id="chatBox">
+              <p style="text-align:center; color:#aaa;">No chat messages yet.</p>
+            </div>
+            <div class="chat-input">
+              <input type="text" id="chatMessage" placeholder="Type a message..." />
+              <button onclick="sendMessage()">Send</button>
+            </div>
+          </div>
+        </div>
+        
+        <!-- Settings Screen -->
+        <div id="settingsScreen" class="subscreen" style="display:none;">
+          <div class="settings-container">
+            <h3>Settings</h3>
+            <div class="profile">
+              <div class="profile-img" id="profileImg">
+                <div class="edit-pfp" onclick="document.getElementById('profileImageInput').click()">&#9998;</div>
+              </div>
+              <div class="profile-id" id="profileId">Citizen ID:</div>
+            </div>
+            <!-- Removed the update profile picture button -->
+            <input type="file" id="profileImageInput" accept="image/*" style="display:none;" onchange="updateProfileImage(event)" />
+            <br/><br/>
+            <button onclick="clearHistory()">Clear History</button>
+            <br/><br/>
+            <button onclick="logoutUser()">Logout</button>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Bottom Navigation -->
+      <div class="app-footer">
+        <div class="nav-button active" onclick="showScreen('homeScreen', this)">
+          <!-- Changed Home Button to home.png -->
+          <img src="home.png" alt="Home" style="width:32px; height:32px;">
+          <span id="homeNotificationDot" class="notification-dot" style="display:none;"></span>
+        </div>
+        <div class="nav-button" onclick="showScreen('chatScreen', this)">
+          <!-- Changed Chat Button to chat.png -->
+          <img src="chat.png" alt="Chat" style="width:32px; height:32px;">
+          <span id="chatNotificationDot" class="notification-dot" style="display:none;"></span>
+        </div>
+      </div>
+      
+      <!-- Floating Camera Button -->
+      <div id="cameraButton" class="camera-button" onclick="openWebcamModal()" title="Quick Report">
+        📷
+      </div>
+    </div>
+  </div>
+  
+  <!-- LOGIN SCREEN -->
+  <div id="loginScreen" class="screen" style="display:block;">
+    <div class="container fade-in">
+      <div id="loadingScreen">
+        <img src="klax.png" alt="Loading...">
+      </div>
+      <div class="app-header">Klax Login</div>
+      <div class="app-content">
+        <form class="auth-form" onsubmit="loginUser(event)">
+          <h2>Login</h2>
+          <input type="text" id="loginCitizenId" placeholder="Citizen ID" required />
+          <input type="password" id="loginPassword" placeholder="Password" required />
+          <button type="submit">Login</button>
+          <div class="switch" onclick="switchScreen('registerScreen')">
+            Don't have an account? Sign Up
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <!-- REGISTRATION SCREEN -->
+  <div id="registerScreen" class="screen">
+    <div class="container fade-in">
+      <div class="app-header">Klax Sign Up</div>
+      <div class="app-content">
+        <form class="auth-form" onsubmit="registerUser(event)">
+          <h2>Sign Up</h2>
+          <input type="text" id="regCitizenId" placeholder="Citizen ID (14 digits)" required />
+          <input type="password" id="regPassword" placeholder="Password" required />
+          <input type="password" id="regConfirmPassword" placeholder="Confirm Password" required />
+          <button type="submit">Register</button>
+          <div class="switch" onclick="switchScreen('loginScreen')">
+            Already have an account? Login
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    /* Global Variables */
+    let incidents = [];
+    let chatMessages = [];
+    window.currentLat = 26.1667;
+    window.currentLng = 32.7167;
+    let webcamStream = null;
+    const notificationSound = new Audio('https://www.soundjay.com/buttons/sounds/button-3.mp3');
+    
+    /* Banned Words, Warnings & Mute Logic */
+    let warnings = {};
+    let muted = {};
+    function containsBannedWords(text) {
+      const bannedWords = ["idiot", "stupid"];
+      return bannedWords.some(word => text.toLowerCase().includes(word));
+    }
+    
+    /* Notification Function (Toast) */
+    function showNotification(message, type = "info") {
+      const container = document.getElementById("notificationContainer");
+      const notif = document.createElement("div");
+      notif.classList.add("notification", type);
+      notif.textContent = message;
+      container.appendChild(notif);
+      setTimeout(() => {
+        notif.style.opacity = "0";
+        setTimeout(() => {
+          container.removeChild(notif);
+        }, 500);
+      }, 3000);
+    }
+    
+    /* Loading Screen */
+    window.onload = function() {
+      setTimeout(() => {
+        document.getElementById('loadingScreen').classList.add('hidden');
+      }, 3000);
+    }
+    
+    /* Screen Navigation */
+    function showScreen(screenId, element) {
+      document.querySelectorAll('.subscreen').forEach(screen => screen.style.display = 'none');
+      document.querySelectorAll('.nav-button').forEach(btn => btn.classList.remove('active'));
+      const selected = document.getElementById(screenId);
+      selected.style.display = 'block';
+      selected.classList.add('fade-in');
+      setTimeout(() => selected.classList.remove('fade-in'), 300);
+      if(element && element.classList.contains('nav-button')) {
+        element.classList.add('active');
+      }
+      if(screenId === 'chatScreen'){
+          document.getElementById('chatNotificationDot').style.display = 'none';
+      }
+      if(screenId === 'homeScreen'){
+          document.getElementById('homeNotificationDot').style.display = 'none';
+      }
+      document.getElementById('cameraButton').style.display = (screenId === 'homeScreen') ? 'flex' : 'none';
+    }
+    
+    /* Webcam Modal Functions */
+    function openWebcamModal() {
+      document.getElementById('webcamModal').style.display = 'flex';
+      navigator.mediaDevices.getUserMedia({ video: true })
+        .then(stream => {
+          webcamStream = stream;
+          document.getElementById('webcamVideo').srcObject = stream;
+        })
+        .catch(err => {
+          showNotification("Unable to access webcam.", "error");
+        });
+    }
+    function closeWebcamModal() {
+      document.getElementById('webcamModal').style.display = 'none';
+      if(webcamStream) {
+        webcamStream.getTracks().forEach(track => track.stop());
+        webcamStream = null;
+      }
+      document.getElementById('webcamVideo').style.display = 'block';
+      document.getElementById('capturedPhoto').style.display = 'none';
+    }
+    function handleWebcamCapture() {
+      const video = document.getElementById('webcamVideo');
+      const canvas = document.getElementById('capturedPhoto');
+      if(video.style.display !== 'none') {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+        video.style.display = 'none';
+        canvas.style.display = 'block';
+        setTimeout(submitWebcamReport, 200);
+      }
+    }
+    function submitWebcamReport() {
+      const canvas = document.getElementById('capturedPhoto');
+      if(canvas.style.display !== 'block') {
+        showNotification("Please capture a photo before submitting.", "error");
+        return;
+      }
+      const timeStr = new Date().toLocaleString();
+      const locationStr = `Coordinates: ${window.currentLat.toFixed(4)}, ${window.currentLng.toFixed(4)}`;
+      const finalDesc = `${locationStr}\nTime Reported: ${timeStr}`;
+      const photoData = canvas.toDataURL();
+      if(photoData.indexOf("data:image/png") === -1){
+        showNotification("No image captured. Please try again.", "error");
+        return;
+      }
+      const incidentId = "incident_" + Date.now();
+      createIncident("Quick Report", finalDesc, photoData, incidentId);
+      closeWebcamModal();
+      showNotification("Report sent with your snapshot!", "success");
+    }
+    
+    /* Incident & Chat Feeds */
+    function loadFeeds() {
+      const storedIncidents = localStorage.getItem('klaxIncidents');
+      if(storedIncidents) incidents = JSON.parse(storedIncidents);
+      const storedChat = localStorage.getItem('klaxChat');
+      if(storedChat) chatMessages = JSON.parse(storedChat);
+      updateIncidentFeed();
+      updateChatFeed();
+    }
+    function updateIncidentFeed() {
+      const feed = document.getElementById('incidentFeed');
+      feed.innerHTML = "";
+      if(incidents.length === 0) {
+        feed.innerHTML = '<p style="text-align:center; color:#aaa;">No reports yet.</p>';
+      } else {
+        incidents.slice().reverse().forEach(incident => {
+          const div = document.createElement('div');
+          div.className = 'incident';
+          if(incident.id) { div.id = incident.id; }
+          const photo = incident.photo === "fakePhoto" 
+            ? '<div class="fake-photo"></div>' 
+            : `<img src="${incident.photo}" alt="Incident Photo">`;
+          let lines = incident.description.split('\n');
+          let infoHtml = `<div class="incident-info">
+                            <span>${lines[0]}</span>
+                            <span>${lines[1]}</span>
+                          </div>`;
+          div.innerHTML = `
+            ${photo}
+            ${incident.category ? `<p><strong>${incident.category}</strong></p>` : ''}
+            ${infoHtml}
+          `;
+          feed.appendChild(div);
+        });
+      }
+    }
+    function updateChatFeed() {
+      const chatBox = document.getElementById('chatBox');
+      chatBox.innerHTML = "";
+      if(chatMessages.length === 0) {
+        chatBox.innerHTML = '<p style="text-align:center; color:#aaa;">No chat messages yet.</p>';
+      } else {
+        chatMessages.forEach((msg, index) => {
+          if(!msg.likes) msg.likes = [];
+          const currentUser = JSON.parse(localStorage.getItem('klaxUser')) || { citizenId: "You" };
+          const likeCount = msg.likes.length;
+          const userLiked = msg.likes.includes(currentUser.citizenId);
+          const div = document.createElement('div');
+          div.className = 'chat-message';
+          if(msg.type === "report") {
+            div.classList.add('report-message');
+          }
+          div.setAttribute('data-index', index);
+          let pfp = "";
+          if(msg.type === "report") {
+            pfp = msg.profileImage || currentUser.profileImage || "pfp.png";
+          } else if(msg.type === "chat") {
+            pfp = "pfp.png";
+          } else if(msg.type === "system") {
+            pfp = "klax.png";
+          }
+          let messageContent = "";
+          if(msg.type === "report") {
+            messageContent = `<div class="report-message">
+              <p><strong>${msg.sender}</strong></p>
+              <button class="big-view-report-btn" onclick="goToReport('${msg.reportId}')">View Report</button>
+            </div>`;
+          } else {
+            messageContent = msg.text;
+          }
+          let senderHtml = "";
+          if(msg.type !== "chat" && msg.type !== "report") {
+            senderHtml = `<strong>${msg.sender}:</strong> `;
+          }
+          div.innerHTML = `
+            <img class="chat-pfp" src="${pfp}" alt="Profile Picture">
+            <div class="chat-text">
+              <p>${senderHtml}${messageContent}</p>
+              ${msg.type !== "report" ? `<div class="chat-actions">
+                <button class="pin-button" data-index="${index}" onclick="pinMessage(this)">📌</button>
+                <button class="like-button ${userLiked ? 'liked' : ''}" data-index="${index}" onclick="likeMessage(this)">
+                  👍 <span class="like-count">${likeCount}</span>
+                </button>
+              </div>` : ''}
+              <small>${new Date(msg.timestamp).toLocaleTimeString()} | ${msg.fakeLocation}</small>
+            </div>
+          `;
+          chatBox.appendChild(div);
+        });
+        chatBox.scrollTop = chatBox.scrollHeight;
+      }
+    }
+    function filterIncidents() {
+      const query = document.getElementById('incidentSearch').value.toLowerCase();
+      document.querySelectorAll('.incident').forEach(inc => {
+        inc.style.display = (inc.innerText.toLowerCase().includes(query)) ? "block" : "none";
+      });
+    }
+    
+    /* Create Incident – Report messages appear as a big View Report button in chat */
+    function createIncident(category, description, photo, id = "") {
+      const incident = {
+        category,
+        description,
+        photo,
+        lat: window.currentLat || 26.1667,
+        lng: window.currentLng || 32.7167,
+        timestamp: Date.now(),
+        id: id
+      };
+      incidents.push(incident);
+      localStorage.setItem('klaxIncidents', JSON.stringify(incidents));
+      updateIncidentFeed();
+      
+      let currentUser = JSON.parse(localStorage.getItem('klaxUser')) || { citizenId: "You", profileImage: "pfp.png" };
+      const chatMsg = {
+        sender: currentUser.citizenId,
+        profileImage: currentUser.profileImage,
+        text: description,
+        timestamp: Date.now(),
+        fakeLocation: `${(window.currentLat || 26.1667).toFixed(4)}, ${(window.currentLng || 32.7167).toFixed(4)}`,
+        likes: [],
+        type: "report",
+        reportId: id
+      };
+      chatMessages.push(chatMsg);
+      if(category.toLowerCase().includes("accident")) {
+        const reportChatMsg = {
+          sender: "System",
+          profileImage: "klax.png",
+          text: "",
+          reportId: id,
+          timestamp: Date.now(),
+          fakeLocation: "System",
+          likes: [],
+          type: "system"
+        };
+        chatMessages.push(reportChatMsg);
+      }
+      localStorage.setItem('klaxChat', JSON.stringify(chatMessages));
+      updateChatFeed();
+      if(document.getElementById('homeScreen').style.display !== 'block'){
+          document.getElementById('homeNotificationDot').style.display = 'block';
+      }
+      notificationSound.play();
+    }
+    
+    /* Go To Report – scroll to and flash highlight the incident */
+    function goToReport(incidentId) {
+      showScreen('homeScreen', document.querySelector('.nav-button'));
+      const elem = document.getElementById(incidentId);
+      if(elem) {
+        elem.scrollIntoView({ behavior: 'smooth' });
+        elem.classList.add('highlight');
+        setTimeout(() => elem.classList.remove('highlight'), 500);
+      }
+    }
+    
+    /* Chat Sending & Moderator Bot with Censorship */
+    function sendMessage() {
+      const input = document.getElementById('chatMessage');
+      const text = input.value.trim();
+      let currentUser = JSON.parse(localStorage.getItem('klaxUser')) || { citizenId: "You" };
+      
+      if(muted[currentUser.citizenId]) {
+        showNotification("You are muted for 10 seconds.", "error");
+        input.value = "";
+        return;
+      }
+      
+      if(containsBannedWords(text)) {
+        warnings[currentUser.citizenId] = (warnings[currentUser.citizenId] || 0) + 1;
+        if(warnings[currentUser.citizenId] < 3) {
+          const warnMsg = {
+            sender: "Moderator",
+            profileImage: currentUser.profileImage || "klax.png",
+            text: "Warning: Please refrain from using offensive language.",
+            timestamp: Date.now(),
+            fakeLocation: "System",
+            likes: [],
+            type: "system"
+          };
+          chatMessages.push(warnMsg);
+          localStorage.setItem('klaxChat', JSON.stringify(chatMessages));
+          updateChatFeed();
+          showNotification("Warning issued.", "error");
+          input.value = "";
+          return;
+        } else {
+          muted[currentUser.citizenId] = true;
+          const muteMsg = {
+            sender: "Moderator",
+            profileImage: currentUser.profileImage || "klax.png",
+            text: "You have been muted for 10 seconds for offensive language.",
+            timestamp: Date.now(),
+            fakeLocation: "System",
+            likes: [],
+            type: "system"
+          };
+          chatMessages.push(muteMsg);
+          localStorage.setItem('klaxChat', JSON.stringify(chatMessages));
+          updateChatFeed();
+          showNotification("You have been muted for 10 seconds.", "error");
+          input.value = "";
+          setTimeout(() => {
+            muted[currentUser.citizenId] = false;
+            warnings[currentUser.citizenId] = 0;
+            showNotification("Mute lifted.", "info");
+          }, 10000);
+          return;
+        }
+      }
+      
+      const chatMsg = {
+        sender: currentUser.citizenId,
+        profileImage: "pfp.png",
+        text,
+        timestamp: Date.now(),
+        fakeLocation: 'Current Location',
+        likes: [],
+        type: "chat"
+      };
+      chatMessages.push(chatMsg);
+      localStorage.setItem('klaxChat', JSON.stringify(chatMessages));
+      updateChatFeed();
+      input.value = "";
+      if(text.toLowerCase().includes("help")) {
+        addTypingIndicator();
+      }
+      if(document.getElementById('chatScreen').style.display !== 'block'){
+          document.getElementById('chatNotificationDot').style.display = 'block';
+      }
+    }
+    function addTypingIndicator() {
+      const chatBox = document.getElementById('chatBox');
+      const typingDiv = document.createElement('div');
+      typingDiv.className = 'chat-message';
+      typingDiv.id = 'typingIndicator';
+      typingDiv.innerHTML = `<em>Moderator is typing...</em>`;
+      chatBox.appendChild(typingDiv);
+      chatBox.scrollTop = chatBox.scrollHeight;
+      setTimeout(() => {
+        if(document.getElementById('typingIndicator')) {
+          document.getElementById('typingIndicator').remove();
+        }
+        let currentUser = JSON.parse(localStorage.getItem('klaxUser')) || { citizenId: "You", profileImage: "pfp.png" };
+        const autoMsg = {
+          sender: "Moderator",
+          profileImage: currentUser.profileImage || "klax.png",
+          text: "How can I assist you?",
+          timestamp: Date.now(),
+          fakeLocation: "System",
+          likes: [],
+          type: "system"
+        };
+        chatMessages.push(autoMsg);
+        localStorage.setItem('klaxChat', JSON.stringify(chatMessages));
+        updateChatFeed();
+        notificationSound.play();
+      }, 1500);
+    }
+    
+    /* Like & Pin Functionality (Not applied to report messages) */
+    function likeMessage(button) {
+      const index = button.getAttribute('data-index');
+      let currentUser = JSON.parse(localStorage.getItem('klaxUser')) || { citizenId: "You" };
+      const msg = chatMessages[index];
+      if(!msg.likes) msg.likes = [];
+      const likedIndex = msg.likes.indexOf(currentUser.citizenId);
+      if(likedIndex !== -1) {
+        msg.likes.splice(likedIndex, 1);
+      } else {
+        msg.likes.push(currentUser.citizenId);
+      }
+      localStorage.setItem('klaxChat', JSON.stringify(chatMessages));
+      updateChatFeed();
+    }
+    function pinMessage(button) {
+      const index = button.getAttribute('data-index');
+      const messageDiv = document.querySelector(`.chat-message[data-index='${index}']`);
+      if(messageDiv) {
+        if(messageDiv.classList.contains('pinned')) {
+          messageDiv.classList.remove('pinned');
+        } else {
+          messageDiv.classList.add('pinned');
+        }
+      }
+    }
+    
+    /* Authentication Functions */
+    function switchScreen(screenId) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('registerScreen').style.display = 'none';
+      document.getElementById('settingsScreen').style.display = 'none';
+      document.getElementById(screenId).style.display = 'block';
+      if(screenId === 'settingsScreen') {
+        const storedUser = localStorage.getItem('klaxUser');
+        if(storedUser) {
+          const user = JSON.parse(storedUser);
+          document.getElementById('profileId').innerText = "Citizen ID: " + user.citizenId;
+          if(user.profileImage) {
+            document.getElementById('profileImg').style.backgroundImage = `url(${user.profileImage})`;
+          }
+        }
+      }
+    }
+    function registerUser(event) {
+      event.preventDefault();
+      const citizenId = document.getElementById('regCitizenId').value.trim();
+      // Enforce exactly 14 digits for Citizen ID
+      if(!/^\d{14}$/.test(citizenId)) {
+        showNotification("Citizen ID must be exactly 14 digits.", "error");
+        return;
+      }
+      const password = document.getElementById('regPassword').value;
+      const confirmPassword = document.getElementById('regConfirmPassword').value;
+      
+      // Enforce strong password: at least 8 characters with uppercase, lowercase, number, and special character
+      if(!/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[\W_]).{8,}$/.test(password)) {
+        showNotification("Password must be at least 8 characters, with uppercase, lowercase, a number, and a special character.", "error");
+        return;
+      }
+      
+      if(password !== confirmPassword) {
+        showNotification("Passwords do not match!", "error");
+        return;
+      }
+      const user = { citizenId, password };
+      localStorage.setItem('klaxUser', JSON.stringify(user));
+      showNotification("Registration successful! Please log in.", "success");
+      switchScreen('loginScreen');
+    }
+    function loginUser(event) {
+      event.preventDefault();
+      const citizenId = document.getElementById('loginCitizenId').value.trim();
+      
+      // Enforce exactly 14 digits for Citizen ID on login as well
+      if(!/^\d{14}$/.test(citizenId)) {
+        showNotification("Citizen ID must be exactly 14 digits.", "error");
+        return;
+      }
+      
+      const password = document.getElementById('loginPassword').value;
+      const storedUser = localStorage.getItem('klaxUser');
+      if(!storedUser) {
+        showNotification("No user found. Please register first.", "error");
+        return;
+      }
+      const user = JSON.parse(storedUser);
+      if(user.citizenId === citizenId && user.password === password) {
+        switchScreen('mainScreen');
+        loadFeeds();
+        // Display login ID under profile picture in settings
+        document.getElementById('profileId').innerText = "Citizen ID: " + citizenId;
+      } else {
+        showNotification("Invalid credentials. Please try again.", "error");
+      }
+    }
+    function logoutUser() {
+      if(confirm("Logout?")) {
+        switchScreen('loginScreen');
+        showNotification("Logged out successfully.", "info");
+      }
+    }
+    
+    /* Profile Image Update */
+    function updateProfileImage(event) {
+      const file = event.target.files[0];
+      if(file) {
+        const reader = new FileReader();
+        reader.onload = e => {
+          document.getElementById('profileImg').style.backgroundImage = `url(${e.target.result})`;
+          let user = JSON.parse(localStorage.getItem('klaxUser'));
+          user.profileImage = e.target.result;
+          localStorage.setItem('klaxUser', JSON.stringify(user));
+          showNotification("Profile picture updated.", "success");
+        }
+        reader.readAsDataURL(file);
+      }
+    }
+    
+    /* Clear History */
+    function clearHistory() {
+      if(confirm("Clear all reports and chat history?")) {
+        localStorage.removeItem('klaxIncidents');
+        localStorage.removeItem('klaxChat');
+        incidents = [];
+        chatMessages = [];
+        updateIncidentFeed();
+        updateChatFeed();
+        showNotification("History cleared.", "info");
+      }
+    }
+  </script>
+</body>
+</html>
+
